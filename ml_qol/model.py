@@ -31,7 +31,7 @@ param_map = {
 		'loss_function': 'loss_function',
 		'metric': 'eval_metric',
 		'reg_2': 'l2_leaf_reg',
-  	# 'border_count': 'border_count',
+  	'border_count': 'border_count',
    	'subsample': 'subsample',
 		'device': 'task_type',
 		'seed': 'random_seed',
