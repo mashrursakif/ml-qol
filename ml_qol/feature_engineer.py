@@ -1,10 +1,11 @@
 import pandas as pd
+import numpy as np
 import warnings
 from itertools import combinations
 from sklearn.model_selection import KFold
 
 
-def expand_date(df, date_col='date_time'):
+def expand_date(df: pd.DataFrame, date_col: str = 'date_time'):
     df = df.copy()
 
     if date_col not in df.columns:
@@ -26,11 +27,11 @@ def expand_date(df, date_col='date_time'):
 
 
 def combine_features(
-    df,
-    num_features=None,
-    cat_features=None,
+    df: pd.DataFrame,
+    num_features:  list[str] | None = None,
+    cat_features: list[str] | None = None,
     # methods=['divide', 'multiply']
-):
+) -> pd.DataFrame:
     df = df.copy()
 
     if not num_features:
@@ -44,25 +45,38 @@ def combine_features(
         cat_features = df.select_dtypes(
             include=['category', 'object']).columns.tolist()
 
-    for col1, col2 in combinations(num_features):
+    for col1, col2 in combinations(num_features, 2):
         df[f'{col1}_times_{col2}'] = df[col1] * df[col2]
         df[f'{col1}_div_{col2}'] = df[col1] / df[col2].replace(0, pd.NA)
 
-    for col1, col2 in combinations(cat_features):
+    for col1, col2 in combinations(cat_features, 2):
         df[f'{col1}_{col2}'] = df[col1].astype(
             str) + '_' + df[col2].astype(str)
 
     return df
 
 
-def bin_column(df, col, bins=4, labels=None):
+def bin_column(
+    df: pd.DataFrame,
+    col: str,
+    bins: int = 4,
+    labels=None
+) -> pd.DataFrame:
     df[f'{col}_binned'] = pd.cut(df[col], bins=bins, labels=labels)
     return df
 
 
-def target_encode_test(train_df, test_df, target_col='target', cols=None):
+def target_encode_test(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    target_col: str = 'target',
+    cols: list[str] | None = None
+) -> pd.DataFrame:
     test_df = test_df.copy()
     train_df = train_df.copy()
+
+    if not pd.api.types.is_numeric_dtype(train_df[target_col]):
+        raise TypeError(f'{target_col} is not numeric')
 
     if not cols:
         raise ValueError(f'cols not provided')
@@ -73,20 +87,24 @@ def target_encode_test(train_df, test_df, target_col='target', cols=None):
             train_df = bin_column(train_df, col)
             test_df = bin_column(test_df, col)
 
-        agg_list = ['mean', 'median', 'max', 'min', 'nunique']
+        agg_list = [np.mean, np.median, np.max, np.min]
         group_df = train_df.groupby(
             col)[target_col].agg(agg_list).reset_index()
         group_df.columns = [col] + [f'{col}_te_{name}' for name in agg_list]
 
-        te_test_df = pd.merge(test_df, group_df, on=col, how='left')
+        test_df = pd.merge(test_df, group_df, on=col, how='left')
 
         # Remove bin features added from bin_column
-        te_test_df.drop(columns=[f'{col}_binned'], inplace=True)
+        test_df.drop(columns=[f'{col}_binned'], inplace=True)
 
-    return te_test_df
+    return test_df
 
 
-def target_encode(df, target_col='target', cols=None):
+def target_encode(
+    df: pd.DataFrame,
+    target_col: str = 'target',
+    cols: list[str] | None = None
+) -> pd.DataFrame:
     df = df.copy()
 
     if not cols:
