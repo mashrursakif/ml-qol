@@ -4,36 +4,36 @@ from .model import train_model, default_params
 import pandas as pd
 import numpy as np
 
-print("DP::", default_params)
-
 
 def fold_train(
     model_type: ModelNameType = "catboost",
     task: TaskType = "regression",
     params: dict = default_params,
-    dataset: pd.DataFrame | None = None,
+    data: pd.DataFrame | None = None,
     target_col: str = "target",
     verbose: int = 100,
     early_stop: int = 500,
     random_state: int | None = 42,
 ):
-    if dataset is None:
+    if data is None:
         raise ValueError("dataset not found")
 
+    data = data.reset_index()
+
     if task == "classification":
-        X = dataset.drop(columns=[target_col])
-        y = dataset[target_col]
+        X = data.drop(columns=[target_col])
+        y = data[target_col]
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         split = skf.split(X, y)
     else:
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
-        split = kf.split(dataset)
+        split = kf.split(data)
 
     model_list = []
 
     for train_idx, valid_idx in split:
-        train_df = dataset.loc[train_idx].copy()
-        valid_df = dataset.loc[valid_idx].copy()
+        train_df = data.loc[train_idx].copy()
+        valid_df = data.loc[valid_idx].copy()
 
         model = train_model(
             model_type=model_type,
