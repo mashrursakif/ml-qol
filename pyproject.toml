@@ -3,9 +3,9 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ml_qol"
+name = "ml-qol"
 version = "0.1.0"
-description = "An ML toolkit library providing quality of life features"
+description = "An ML toolkit package that provides quality-of-life features"
 authors = [
     { name = 'Mashrur Sakif Souherdo', email = 'mashrursakifsouehrdo@gmail.com' }
 ]

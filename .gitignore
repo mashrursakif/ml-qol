@@ -1,0 +1,55 @@
+.env
+
+# compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+**/*.egg-info/
+**/*.egg
+**/*.whl
+
+# environments
+venv/
+env/
+.venv/
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.tmp
+*.bak
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Coverage / testing reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Pytest cache
+.pytest_cache/
+
+# mypy cache
+.mypy_cache/
+
+# PyCharm
+*.iml
