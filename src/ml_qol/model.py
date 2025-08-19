@@ -1,5 +1,11 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    mean_squared_error,
+    mean_absolute_error,
+    accuracy_score,
+    f1_score,
+)
 
 # from sklearn.metrics import mean_absolute_error, mean_squared_error
 import numpy as np
@@ -15,6 +21,7 @@ import lightgbm as lgb
 
 # import xgboost as xgb
 
+from typing import Literal
 from .types import *
 
 all_models = {
@@ -61,6 +68,9 @@ def map_params(model_type: str, user_params: dict) -> dict:
 
     mapped_params = {}
     for key, value in user_params.items():
+        if key == "loss_function":
+            value = map_loss_functions(value, model_type)
+
         mapped_key = model_param_map.get(key)
         if mapped_key:
             mapped_params[mapped_key] = value
@@ -68,6 +78,42 @@ def map_params(model_type: str, user_params: dict) -> dict:
             warnings.warn(f"Parameter {key} not recognized, and will be ignored")
 
     return mapped_params
+
+
+loss_fn_map = {
+    "catboost": {
+        "RMSE": "RMSE",
+        "MAE": "MAE",
+        "binary": "Logloss",
+        "cross_entropy": "CrossEntropy",
+        "multi_class": "MultiClass",
+        "MAPE": "MAPE",
+        "quantile": "Quantile",
+    },
+    "lightgbm": {
+        "RMSE": "rmse",
+        "MAE": "l1",
+        "binary": "binary",
+        "cross_entropy": "cross_entropy",
+        "multi_class": "multiclass",
+        "MAPE": "mape",
+        "quantile": "quantile",
+    },
+}
+
+
+def map_loss_functions(loss_fn, model_type):
+    model_loss_map = loss_fn_map[model_type]
+
+    mapped_loss = model_loss_map.get(loss_fn)
+
+    if mapped_loss:
+        return mapped_loss
+    else:
+        warnings.warn(
+            f"mapping for loss function: {loss_fn} not found, will be used as is"
+        )
+        return loss_fn
 
 
 default_params = {
@@ -151,6 +197,14 @@ class ModelWrapper:
         return getattr(self.model, attr)
 
 
+metric_map = {
+    "mse": mean_squared_error,
+    "mae": mean_absolute_error,
+    "accuracy": accuracy_score,
+    "f1": f1_score,
+}
+
+
 def train_model(
     model_type: ModelNameType = "catboost",
     task: TaskType = "regression",
@@ -158,6 +212,7 @@ def train_model(
     train_data: pd.DataFrame | None = None,
     valid_data: pd.DataFrame | None = None,
     target_col: str = "target",
+    metric: Literal["mse", "mae", "accuracy", "f1"] | None = None,
     verbose: int = 100,
     early_stop: int = 500,
     random_state: int | None = 42,
@@ -209,5 +264,43 @@ def train_model(
             ],
         )
 
+    if task == "classification":
+        # Warn if invalid metric provided and set classification default
+        if metric in ("mse", "mae"):
+            warnings.warn(
+                f"{metric} is not a valid metric, using default metric 'accuracy' instead"
+            )
+            metric = "accuracy"
+
+        # Set classification default metric
+        if metric is None:
+            metric = "accuracy"
+
+    else:
+        # Warn if invalid metric provided and set regression default
+        if metric in ("accuracy", "f1"):
+            warnings.warn(
+                f"{metric} is not a valid metric, using default metric 'mse' instead"
+            )
+            metric = "mse"
+
+        # Set regression default
+        if metric is None:
+            metric = "mse"
+
+    metric_fn = metric_map[metric]
+
+    valid_preds = model.predict(X_valid)
+    eval_score = metric_fn(y_valid, valid_preds)
+
+    print(f"\nValidation {metric} score: {eval_score}")
+
     model = ModelWrapper(model, model_type, task, X_valid, y_valid)
-    return model
+
+    info = {
+        "X_valid": X_valid,
+        "y_valid": y_valid,
+        "eval_score": eval_score,
+    }
+
+    return model, info
