@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ml-qol"
-version = "0.1.0"
+version = "0.1.1"
 description = "An ML toolkit package that provides quality-of-life features"
 authors = [
     { name = 'Mashrur Sakif Souherdo', email = 'mashrursakifsouehrdo@gmail.com' }
