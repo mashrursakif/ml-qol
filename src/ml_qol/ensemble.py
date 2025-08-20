@@ -41,8 +41,9 @@ def fold_train(
     model_list = []
     eval_scores = []
 
-    for train_idx, valid_idx in split:
-        print(f"Fold ")
+    for fold_num, (train_idx, valid_idx) in enumerate(split):
+        print(f"Running Fold: {fold_num + 1}")
+
         train_df = data.loc[train_idx].copy()
         valid_df = data.loc[valid_idx].copy()
 
