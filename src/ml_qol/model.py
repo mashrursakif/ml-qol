@@ -7,10 +7,10 @@ from sklearn.metrics import (
     f1_score,
 )
 
-# from sklearn.metrics import mean_absolute_error, mean_squared_error
 import numpy as np
 import warnings
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 # import seaborn as sns
 
@@ -162,12 +162,14 @@ class ModelWrapper:
         task: TaskType,
         X_valid: pd.DataFrame,
         y_valid: pd.Series,
+        valid_preds: np.ndarray,
     ):
         self.model = model
         self.model_type = model_type
         self.task = task
         self.X_valid = X_valid
         self.y_valid = y_valid
+        self.valid_preds = valid_preds
 
     def plot_importance(
         self, max_num_features: int = 20, figsize: tuple[float, float] = (10, 6)
@@ -191,6 +193,15 @@ class ModelWrapper:
         plt.barh(importance_df["feature"], importance_df["importance"])
         plt.xlabel("Importance")
         plt.title("Feature Importance")
+        plt.show()
+
+    def confusion_matrix(self):
+        y_valid, valid_preds = self.y_valid, self.valid_preds
+        cm = confusion_matrix(y_valid, valid_preds)
+
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        disp.plot(values_format="d")
+        plt.title("Confusion Matrix")
         plt.show()
 
     def __getattr__(self, attr):
@@ -295,7 +306,7 @@ def train_model(
 
     print(f"\nValidation {metric} score: {eval_score}")
 
-    model = ModelWrapper(model, model_type, task, X_valid, y_valid)
+    model = ModelWrapper(model, model_type, task, X_valid, y_valid, valid_preds)
 
     info = {
         "X_valid": X_valid,

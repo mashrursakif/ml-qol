@@ -1,17 +1,12 @@
-from .types import *
 from sklearn.model_selection import KFold, StratifiedKFold
-
-# from sklearn.metrics import (
-#     mean_squared_error,
-#     mean_absolute_error,
-#     accuracy_score,
-#     f1_score,
-# )
-from .model import train_model, default_params
 import pandas as pd
 import numpy as np
 import warnings
+
+from .model import train_model, default_params
+
 from typing import Literal
+from .types import *
 
 
 def fold_train(
@@ -29,6 +24,8 @@ def fold_train(
     if data is None:
         raise ValueError("dataset not found")
 
+    # reset index to prevent indexing errors
+    data = data.copy()
     data = data.reset_index(drop=True)
 
     if task == "classification":

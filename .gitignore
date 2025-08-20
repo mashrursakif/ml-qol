@@ -53,3 +53,6 @@ coverage.xml
 
 # PyCharm
 *.iml
+
+# Model training
+catboost_info/

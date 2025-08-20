@@ -57,7 +57,7 @@ print(predictions)
 ## Resources
 
 - GitHub repository: (https://github.com/mashrursakif/ml-qol)
-<!-- - Documentation: Currently unavailable -->
+- Documentation and examples: (https://github.com/mashrursakif/ml-qol/tree/main/examples/)
 
 ### License
 

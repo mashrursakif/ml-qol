@@ -37,8 +37,12 @@ def combine_features(
     num_features: list[str] | None = None,
     cat_features: list[str] | None = None,
     # methods=['divide', 'multiply']
-    allow_large: bool = False,
+    safety_check: bool = True,
 ) -> pd.DataFrame:
+
+    # reset index to prevent indexing errors
+    df = df.copy()
+    df = df.reset_index(drop=True)
 
     y = None
 
@@ -46,7 +50,7 @@ def combine_features(
         warnings.warn("target_col not specified, this may lead to data leakage")
     else:
         y = df[target_col]
-        df = df.drop(columns=target_col).copy()
+        df = df.drop(columns=target_col)
 
     if not num_features:
         warnings.warn(
@@ -60,9 +64,9 @@ def combine_features(
         )
         cat_features = df.select_dtypes(include=["category", "object"]).columns.tolist()
 
-    if (len(num_features) > 50 or len(cat_features) > 50) and not allow_large:
+    if (len(num_features) > 50 or len(cat_features) > 50) and safety_check:
         raise ValueError(
-            "More than 50 features selected, this could lead to extremely high memory usage or slow performance. Pass allow_large = True to override this safe check"
+            "More than 50 features selected, this could lead to extremely high memory usage or slow performance. Pass safety_check = False to override this safe check"
         )
 
     for col1, col2 in combinations(num_features, 2):
@@ -93,8 +97,13 @@ def target_encode_test(
     target_col: str = "target",
     cols: list[str] | None = None,
 ) -> pd.DataFrame:
-    test_df = test_df.copy()
+
+    # reset index to prevent indexing errors
     train_df = train_df.copy()
+    train_df = train_df.reset_index(drop=True)
+
+    test_df = test_df.copy()
+    test_df = test_df.reset_index(drop=True)
 
     if not pd.api.types.is_numeric_dtype(train_df[target_col]):
         raise TypeError(f"{target_col} is not numeric")
@@ -111,13 +120,17 @@ def target_encode_test(
         # agg_list = [np.mean, np.median, np.max, np.min]
         # using Any type as work around for .agg function-string conflict
         agg_list: Any = ["mean", "median", "max", "min"]
-        group_df = train_df.groupby(col)[target_col].agg(agg_list).reset_index()
+        group_df = (
+            train_df.groupby(col, observed=False)[target_col]
+            .agg(agg_list)
+            .reset_index()
+        )
         group_df.columns = [col] + [f"{col}_te_{name}" for name in agg_list]
 
         test_df = pd.merge(test_df, group_df, on=col, how="left")
 
-        # Remove bin features added from bin_column
-        test_df.drop(columns=[f"{col}_binned"], inplace=True)
+        # Remove bin features added from bin_column, ignore key error in case _binned columns don't exist
+        test_df.drop(columns=[f"{col}_binned"], inplace=True, errors="ignore")
 
     return test_df
 
@@ -125,7 +138,10 @@ def target_encode_test(
 def target_encode(
     df: pd.DataFrame, target_col: str | None = None, cols: list[str] | None = None
 ) -> pd.DataFrame:
+
+    # reset index to prevent indexing errors
     df = df.copy()
+    df = df.reset_index(drop=True)
 
     if not target_col:
         raise ValueError(f"target_col not provided")
