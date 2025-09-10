@@ -163,6 +163,7 @@ class ModelWrapper:
         X_valid: pd.DataFrame,
         y_valid: pd.Series,
         valid_preds: np.ndarray,
+        eval_score: float,
     ):
         self.model = model
         self.model_type = model_type
@@ -170,6 +171,7 @@ class ModelWrapper:
         self.X_valid = X_valid
         self.y_valid = y_valid
         self.valid_preds = valid_preds
+        self.eval_score = eval_score
 
     def plot_importance(
         self, max_num_features: int = 20, figsize: tuple[float, float] = (10, 6)
@@ -306,6 +308,8 @@ def train_model(
 
     print(f"\nValidation {metric} score: {eval_score}")
 
-    model = ModelWrapper(model, model_type, task, X_valid, y_valid, valid_preds)
+    model = ModelWrapper(
+        model, model_type, task, X_valid, y_valid, valid_preds, eval_score
+    )
 
     return model

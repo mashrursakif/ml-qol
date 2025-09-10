@@ -47,7 +47,7 @@ def fold_train(
         train_df = data.loc[train_idx].copy()
         valid_df = data.loc[valid_idx].copy()
 
-        model, info = train_model(
+        model = train_model(
             model_type=model_type,
             task=task,
             params=params,
@@ -61,7 +61,7 @@ def fold_train(
         )
 
         model_list.append(model)
-        eval_scores.append(info["eval_score"])
+        eval_scores.append(model.eval_score)
 
     mean_score = np.array(eval_scores).mean()
 
