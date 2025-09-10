@@ -308,10 +308,4 @@ def train_model(
 
     model = ModelWrapper(model, model_type, task, X_valid, y_valid, valid_preds)
 
-    info = {
-        "X_valid": X_valid,
-        "y_valid": y_valid,
-        "eval_score": eval_score,
-    }
-
-    return model, info
+    return model

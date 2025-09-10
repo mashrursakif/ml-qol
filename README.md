@@ -44,7 +44,7 @@ pip install ml-qol
 from ml_qol import train_model
 
 # Train a model
-model, model_info = train_model('lightgbm', 'regression', train_data=train_df, target_col='price')
+model = train_model('lightgbm', 'regression', train_data=train_df, target_col='price')
 
 # Show feature importances
 model.plot_importance()
@@ -56,8 +56,9 @@ print(predictions)
 
 ## Resources
 
+- PyPi: (https://pypi.org/project/ml-qol)
 - GitHub repository: (https://github.com/mashrursakif/ml-qol)
-- Documentation and examples: (https://github.com/mashrursakif/ml-qol/tree/main/examples/)
+- Documentation and examples: (https://github.com/mashrursakif/ml-qol/tree/main/examples)
 
 ### License
 
