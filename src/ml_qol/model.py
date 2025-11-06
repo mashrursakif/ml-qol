@@ -258,9 +258,14 @@ def train_model(
         train_pool = Pool(X_train, y_train, cat_features=cat_cols)
         valid_pool = Pool(X_valid, y_valid, cat_features=cat_cols)
 
+        if params["device"] == "GPU":
+            eval_set = [valid_pool]
+        else:
+            eval_set = [train_pool, valid_pool]
+
         model.fit(
             train_pool,
-            eval_set=[train_pool, valid_pool],
+            eval_set=eval_set,
             use_best_model=True,
             verbose=verbose,
             early_stopping_rounds=early_stop,
