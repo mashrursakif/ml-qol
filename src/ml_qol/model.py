@@ -259,7 +259,7 @@ def train_model(
         valid_pool = Pool(X_valid, y_valid, cat_features=cat_cols)
 
         if params["device"] == "GPU":
-            eval_set = [valid_pool]
+            eval_set = valid_pool
         else:
             eval_set = [train_pool, valid_pool]
 
