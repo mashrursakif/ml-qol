@@ -226,6 +226,7 @@ def train_model(
     valid_data: pd.DataFrame | None = None,
     target_col: str = "target",
     metric: Literal["mse", "mae", "accuracy", "f1"] | None = None,
+    metric_params: dict = None,
     verbose: int = 100,
     early_stop: int = 500,
     random_state: int | None = 42,
@@ -258,7 +259,7 @@ def train_model(
         train_pool = Pool(X_train, y_train, cat_features=cat_cols)
         valid_pool = Pool(X_valid, y_valid, cat_features=cat_cols)
 
-        if params["device"] == "GPU":
+        if params.get("device", "").upper() == "GPU":
             eval_set = valid_pool
         else:
             eval_set = [train_pool, valid_pool]
@@ -309,7 +310,11 @@ def train_model(
     metric_fn = metric_map[metric]
 
     valid_preds = model.predict(X_valid)
-    eval_score = metric_fn(y_valid, valid_preds)
+
+    if metric_params:
+        eval_score = metric_fn(y_valid, valid_preds, **metric_params)
+    else:
+        eval_score = metric_fn(y_valid, valid_preds)
 
     print(f"\nValidation {metric} score: {eval_score}")
 
